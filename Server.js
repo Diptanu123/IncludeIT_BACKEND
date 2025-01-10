@@ -50,7 +50,7 @@ app.post("/api/enroll", async (req, res) => {
 
 // Default Route for Testing
 app.get("/", (req, res) => {
-  res.send("Backend is working!");
+  res.send("Backend is live!");
 });
 
 // Start Server
