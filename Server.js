@@ -1,5 +1,5 @@
 const dotenv = require("dotenv");
-dotenv.config(); // Load .env variables
+dotenv.config();
 
 const express = require("express");
 const mongoose = require("mongoose");
@@ -7,15 +7,22 @@ const cors = require("cors");
 
 const app = express();
 app.use(cors());
-app.use(express.json()); // Use built-in express JSON parser
+app.use(express.json());
 
 // MongoDB Connection
-mongoose.connect(process.env.MONGO_URL)
-  .then(() => console.log('MongoDB Connected Successfully'))
+mongoose.connect(process.env.MONGO_URL, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+  .then(() => console.log("MongoDB Connected Successfully"))
   .catch((err) => {
-    console.error('MongoDB Connection Failed:', err);
-    process.exit(1); // Exit process if MongoDB connection fails
+    console.error("MongoDB Connection Failed:", err);
+    process.exit(1);
   });
+
+mongoose.connection.on('error', (err) => {
+  console.error("MongoDB Error:", err.message);
+});
 
 // Define Schema and Model
 const EnrollmentSchema = new mongoose.Schema({
@@ -30,7 +37,7 @@ const EnrollmentSchema = new mongoose.Schema({
 
 const Enrollment = mongoose.model("Enrollment", EnrollmentSchema);
 
-// API Endpoint for Form Submission
+// API Endpoint
 app.post("/api/enroll", async (req, res) => {
   try {
     const enrollmentData = new Enrollment(req.body);
@@ -41,6 +48,13 @@ app.post("/api/enroll", async (req, res) => {
   }
 });
 
+// Default Route for Testing
+app.get("/", (req, res) => {
+  res.send("Backend is working!");
+});
+
 // Start Server
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+module.exports = app; // For Vercel
