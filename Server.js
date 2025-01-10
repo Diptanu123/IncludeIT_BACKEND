@@ -17,7 +17,8 @@ mongoose.connect(process.env.MONGO_URL, {
   .then(() => console.log("MongoDB Connected Successfully"))
   .catch((err) => {
     console.error("MongoDB Connection Failed:", err);
-    process.exit(1);
+    // Don't exit process on Vercel
+    console.error(err);
   });
 
 mongoose.connection.on('error', (err) => {
@@ -49,12 +50,9 @@ app.post("/api/enroll", async (req, res) => {
 });
 
 // Default Route for Testing
-app.get("/", (req, res) => {
-  res.send("Backend is live!");
+app.get("/api/test", (req, res) => {
+  res.json({ message: "Backend is live!" });
 });
 
-// Start Server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
-module.exports = app; // For Vercel
+// Remove the app.listen part for Vercel deployment
+module.exports = app;
