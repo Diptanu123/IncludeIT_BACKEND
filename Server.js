@@ -6,8 +6,25 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 
 const app = express();
-app.use(cors());
+
+// Add more detailed CORS configuration
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST']
+}));
+
 app.use(express.json());
+
+// Add request logging middleware
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  next();
+});
+
+// Test route - place this before MongoDB connection
+app.get("/api/test", (req, res) => {
+  res.json({ message: "Backend is live!", timestamp: new Date().toISOString() });
+});
 
 // MongoDB Connection
 mongoose.connect(process.env.MONGO_URL, {
@@ -17,7 +34,7 @@ mongoose.connect(process.env.MONGO_URL, {
   .then(() => console.log("MongoDB Connected Successfully"))
   .catch((err) => {
     console.error("MongoDB Connection Failed:", err);
-    // Don't exit process on Vercel
+    // Log error but don't exit
     console.error(err);
   });
 
@@ -45,14 +62,23 @@ app.post("/api/enroll", async (req, res) => {
     await enrollmentData.save();
     res.status(201).json({ message: "Registration successful!" });
   } catch (error) {
-    res.status(400).json({ message: "Error saving registration", error });
+    console.error("Enrollment error:", error);
+    res.status(400).json({ message: "Error saving registration", error: error.message });
   }
 });
 
-// Default Route for Testing
-app.get("/api/test", (req, res) => {
-  res.json({ message: "Backend is live!" });
+// Catch-all route for API
+app.all("/api/*", (req, res) => {
+  res.status(404).json({ 
+    error: "API endpoint not found",
+    requestedPath: req.path,
+    method: req.method
+  });
 });
 
-// Remove the app.listen part for Vercel deployment
+// Root route
+app.get("/", (req, res) => {
+  res.json({ message: "Backend API is running" });
+});
+
 module.exports = app;
