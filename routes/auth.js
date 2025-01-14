@@ -110,7 +110,8 @@ router.post("/login", async (req, res) => {
       {
         id: user._id,
         userid: user.userid,
-        email: user.email
+        email: user.email,
+        college:user.college
       },
       process.env.JWT_SECRET,
       { expiresIn: "24h" }
@@ -121,10 +122,11 @@ router.post("/login", async (req, res) => {
       "Login successful",
       {
         token,
-        user: {
+        userData: {
           userid: user.userid,
           email: user.email,
-          name: user.name
+          name: user.name,
+          college:user.college
         }
       }
     ));
@@ -138,10 +140,11 @@ router.post("/login", async (req, res) => {
 });
 
 // Protected Route
+// Protected Route
 router.get("/protected", verifyToken, async (req, res) => {
   try {
     const user = await Enrollment.findById(req.user.id)
-      .select("-password");
+      .select("-password");  // Exclude password from the response
 
     if (!user) {
       return res.status(404).json(createResponse(
@@ -163,5 +166,6 @@ router.get("/protected", verifyToken, async (req, res) => {
     ));
   }
 });
+
 
 module.exports = router;
